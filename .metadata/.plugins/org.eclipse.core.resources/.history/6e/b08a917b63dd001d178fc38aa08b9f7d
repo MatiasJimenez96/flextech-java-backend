@@ -1,0 +1,5 @@
+package com.matiasjimenez.app.clientes.models.entity;
+
+public class Persona {
+
+}

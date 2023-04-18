@@ -1,0 +1,21 @@
+package com.matiasjimenez.app.clientes.models.entity;
+
+import java.util.Date;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "personas")
+public class Persona {
+	
+	private Long id;
+	private String apellido;
+	private Date fecha_nacimiento;
+	private String direccion;
+	private String telefono;
+	private String pais;
+	
+	
+
+}

@@ -1,0 +1,91 @@
+package com.matiasjimenez.app.clientes.controller;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.matiasjimenez.app.clientes.models.entity.Persona;
+import com.matiasjimenez.app.clientes.service.PersonaService;
+
+@RestController
+@RequestMapping("/api/clientes")
+public class PersonaController {
+
+	@Autowired
+	private PersonaService servicio;
+
+	@GetMapping("")
+	public ResponseEntity<?> listar() {
+		return ResponseEntity.ok(servicio.listar());
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<?> buscarPorId(@PathVariable Long id) {
+		Map<String, Object> respuesta = new HashMap<>();
+		Optional<Persona> p = null;
+
+		try {
+			p = servicio.buscarPorId(id);
+		} catch (DataAccessException e) {
+			respuesta.put("mensaje", "Error al realizar la consulta en la base de datos!");
+			respuesta.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
+
+		if (!p.isPresent()) {
+			respuesta.put("mensaje",
+					"La persona con ID: ".concat(id.toString()).concat(" no existe en la base de datos!"));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+		}
+		return ResponseEntity.ok(p.get());
+	}
+
+	@PostMapping("/guardar")
+	public ResponseEntity<?> guardar(@RequestBody Persona persona) {
+		Map<String, Object> respuesta = new HashMap<>();
+		Persona personaNew = null;
+		
+		try {
+			personaNew = servicio.guardar(persona);
+		} catch (DataAccessException e) {
+			respuesta.put("mensaje", "Error al realizarel insert en la base de datos!");
+			respuesta.put("error", e.getMessage().concat(": ").concat(e.getMostSpecificCause().getMessage()));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
+		
+		return ResponseEntity.ok(personaNew);
+	}
+
+	@PostMapping("/guardar-lista")
+	public ResponseEntity<?> guardarListaDePersonas(@RequestBody List<Persona> personas) {
+		return ResponseEntity.ok(servicio.guardarLista(personas));
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<?> eliminarPorId(@PathVariable Long id) {
+		Map<String, Object> respuesta = new HashMap<>();
+		Optional<Persona> p = servicio.buscarPorId(id);
+		if (!p.isPresent()) {
+			respuesta.put("mensaje",
+					"La persona con ID: ".concat(id.toString()).concat(" no existe en la base de datos!"));
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(respuesta);
+		}
+		servicio.eliminarPorId(id);
+
+		respuesta.put("mensaje", "Persona eliminada correctamente!");
+		return ResponseEntity.status(HttpStatus.OK).body(respuesta);
+	}
+}

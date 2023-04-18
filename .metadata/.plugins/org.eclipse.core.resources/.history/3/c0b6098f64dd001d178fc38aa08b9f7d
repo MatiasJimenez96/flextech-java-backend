@@ -1,0 +1,5 @@
+package com.matiasjimenez.app.clientes.service;
+
+public interface PersonaService {
+
+}
